@@ -7,7 +7,7 @@ use std::{
 use clap::Parser;
 use regex::Regex;
 
-/// Replace -- with mdash in mardown documents
+/// Replace -- with mdash in markdown documents
 #[derive(Debug, Parser)]
 #[command(author, about)]
 struct Opts {
