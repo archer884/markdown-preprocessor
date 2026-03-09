@@ -24,10 +24,7 @@ fn main() {
 
 fn run(opts: Opts) -> io::Result<()> {
     let content = load_content(&opts)?;
-
-    let comment = Regex::new("<!--.+?-->").unwrap();
-    let content = comment.replace(&content, "");
-    let content = content.replace("--", "—");
+    let content = strip_and_replace(&content);
 
     io::stdout().lock().write_all(content.as_bytes())?;
 
@@ -42,4 +39,21 @@ fn load_content(opts: &Opts) -> io::Result<String> {
     let mut content = String::new();
     io::stdin().lock().read_to_string(&mut content)?;
     Ok(content)
+}
+
+fn strip_and_replace(s: &str) -> String {
+    let comment = Regex::new(r"(?s)<!--.+?-->").unwrap();
+    let content = comment.replace(s, "");
+    content.replace("--", "—")
+}
+
+#[cfg(test)]
+mod test {
+    #[test]
+    fn strip_and_replace_works() {
+        let sample = include_str!("../resource/sample.md");
+        let expected = include_str!("../resource/clean-sample.md");
+        let actual = super::strip_and_replace(sample);
+        assert_eq!(actual, expected);
+    }
 }
