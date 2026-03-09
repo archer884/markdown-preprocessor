@@ -43,7 +43,7 @@ fn load_content(opts: &Opts) -> io::Result<String> {
 
 fn strip_and_replace(s: &str) -> String {
     let comment = Regex::new(r"(?s)<!--.+?-->").unwrap();
-    let content = comment.replace(s, "");
+    let content = comment.replace_all(s, "");
     content.replace("--", "—")
 }
 
