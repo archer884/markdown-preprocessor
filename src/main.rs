@@ -7,7 +7,7 @@ use std::{
 use clap::Parser;
 use regex::Regex;
 
-/// Replace -- with mdash in markdown documents
+/// Strip comments, replace -- with mdash, and pull !/? inside adjacent italic runs
 #[derive(Debug, Parser)]
 #[command(author, about)]
 struct Opts {
@@ -43,7 +43,9 @@ fn load_content(opts: &Opts) -> io::Result<String> {
 
 fn strip_and_replace(s: &str) -> String {
     let comment = Regex::new(r"(?s)<!--.+?-->").unwrap();
+    let emph_star = Regex::new(r"\*([^*]+)\*([!?])").unwrap();
     let content = comment.replace_all(s, "");
+    let content = emph_star.replace_all(&content, "*${1}${2}*");
     content.replace("--", "—")
 }
 
@@ -55,5 +57,23 @@ mod test {
         let expected = include_str!("../resource/clean-sample.md");
         let actual = super::strip_and_replace(sample);
         assert_eq!(actual, expected);
+    }
+
+    #[test]
+    fn moves_tall_punctuation_into_italics() {
+        assert_eq!(super::strip_and_replace("Sit *down*!"), "Sit *down!*");
+        assert_eq!(super::strip_and_replace("*What*?"), "*What?*");
+    }
+
+    #[test]
+    fn leaves_low_punctuation_and_bold_alone() {
+        assert_eq!(
+            super::strip_and_replace("He sat *down*, shrugged."),
+            "He sat *down*, shrugged."
+        );
+        assert_eq!(
+            super::strip_and_replace("It went **boom**!"),
+            "It went **boom**!"
+        );
     }
 }
